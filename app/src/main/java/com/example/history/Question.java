@@ -14,6 +14,7 @@ public class Question {
     public Question(int era, String title, int type, int answer, String commentary) {
         this.era = era;
         this.title = title;
+        //1이면 순서바꾸기 0이면 선택형
         this.type = type;
         this.answer = answer;
         this.commentary = commentary;

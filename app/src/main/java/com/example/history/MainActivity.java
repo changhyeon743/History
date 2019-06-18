@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, ItemTouchHelperCallBack.OnItemMoveListener {
 
@@ -74,14 +75,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         //ArrayAdapter arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,items);
-           //Log.e("size: ",""+questions.size());
-
-        setDatas(1);
+        //Log.e("size: ",""+questions.size());
+        Random random = new Random();
+        setDatas(random.nextInt(questions.size()));
 
     }
 
     public void setDatas(int index) {
-        listAdapter = new ListAdapter(questions.get(index).example);
+        Question current = questions.get(index);
+
+        listAdapter = new ListAdapter(current.example);
         
         //ItemTouchHelperCallBack callBack = new ItemTouchHelperCallBack(this);
         //ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callBack);
