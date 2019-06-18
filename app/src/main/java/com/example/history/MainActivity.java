@@ -1,6 +1,7 @@
 package com.example.history;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -186,15 +187,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void answer(String text) {
         //답하기
-        if (text == correctAnswer) {
+        if (text.equals(correctAnswer)) {
             Toast.makeText(this, "정답!", Toast.LENGTH_SHORT).show();
+            ///Intent
+            Intent intent = new Intent(this,ExplainActivity.class);
+            startActivity(intent);
             shuffle();
-
         } else {
-            Toast.makeText(this, correctAnswer, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "오답!", Toast.LENGTH_SHORT).show();
             Log.e("Your answer:",""+text);
             Log.e("Real answer:",""+correctAnswer);
-            Log.e("Boolean","" + (text == correctAnswer));
+            Log.e("Boolean","" + (text.equals(correctAnswer)));
         }
     }
 }

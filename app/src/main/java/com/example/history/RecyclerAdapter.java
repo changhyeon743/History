@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.List;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ExampleViewHolder> implements ItemTouchHelperCallBack.OnItemMoveListener {
@@ -83,19 +84,21 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Exampl
     @Override
     public boolean onItemMove(int from, int to) {
 
-        String prev = examples.remove(from);
-        examples.add(to > from ? to - 1 : to,prev);
-        notifyItemMoved(from,to);
+        //String prev = examples.remove(from);
+        //examples.add(to > from ? to - 1 : to,prev);
 
-//        if (from < to) {
-//            for (int i = from; i < to; i++) {
-//                Collections.swap(examples, i, i + 1);
-//            }
-//        } else {
-//            for (int i = from; i > to; i--) {
-//                Collections.swap(examples, i, i - 1);
-//            }
-//        }
+
+        if (from < to) {
+            for (int i = from; i < to; i++) {
+                Collections.swap(examples, i, i + 1);
+            }
+        } else {
+            for (int i = from; i > to; i--) {
+                Collections.swap(examples, i, i - 1);
+            }
+        }
+
+        notifyItemMoved(from,to);
 
         return true;
     }
