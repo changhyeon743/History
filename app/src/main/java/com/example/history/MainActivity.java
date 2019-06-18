@@ -1,18 +1,15 @@
 package com.example.history;
 
 import android.annotation.TargetApi;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
-import android.view.View;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.MenuItem;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -20,33 +17,28 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.opencsv.CSVReader;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, ItemTouchHelperCallBack.OnItemMoveListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, RecyclerAdapter.Listener {
 
 
-    ListView listView;
-    ListAdapter listAdapter;
+    RecyclerView recyclerView;
+    RecyclerAdapter recyclerAdapter;
+    ItemTouchHelper itemTouchHelper;
+
+
 
     List<Question> questions;
     TextView titleView;
+    Button confirmBtn;
+    String correctAnswer;
 
     @TargetApi(Build.VERSION_CODES.O)
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -65,69 +57,81 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
+        confirmBtn = findViewById(R.id.confirmBtn);
+        //순서배열
+        confirmBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                answer(recyclerAdapter.getAnswerText());
+            }
+        });
 
         questions = new ArrayList<>();
 
-        for (String[] i : readerCSV(getResources().openRawResource(R.raw.data))) {
+        DataHelper dataHelper = new DataHelper(getResources().openRawResource(R.raw.data));
+
+        for (String[] i : dataHelper.getDatas()) {
             Question question = new Question(Integer.parseInt(i[0]),i[1],Integer.parseInt(i[2]),Integer.parseInt(i[3]),i[8]);
             question.setExample(i);
             questions.add(question);
         }
 
-        //ArrayAdapter arrayAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,items);
-        //Log.e("size: ",""+questions.size());
+        setRecyclerView();
         Random random = new Random();
-        setDatas(random.nextInt(questions.size()));
-
+        Question question = questions.get(random.nextInt(questions.size()));
+        setDatas(question);
     }
 
-    public void setDatas(int index) {
-        Question current = questions.get(index);
+    void setRecyclerView() {
+        recyclerAdapter = new RecyclerAdapter(this);
+        recyclerView = findViewById(R.id.recyclerView);
 
-        listAdapter = new ListAdapter(current.example);
-        
-        //ItemTouchHelperCallBack callBack = new ItemTouchHelperCallBack(this);
-        //ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callBack);
-        //itemTouchHelper.att
 
-        listView = findViewById(R.id.listView);
-        listView.setAdapter(listAdapter);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(linearLayoutManager);
 
-        titleView = findViewById(R.id.title);
-        titleView.setText(questions.get(index).title);
+        ItemTouchHelperCallBack callBack = new ItemTouchHelperCallBack(recyclerAdapter);
+        itemTouchHelper = new ItemTouchHelper(callBack);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        recyclerView.setAdapter(recyclerAdapter);
     }
 
-    //csv 파일을 읽어 들여 List로 리턴
+    void shuffle() {
+        Random random = new Random();
+        setDatas(questions.get(random.nextInt(questions.size())));
+    }
 
-    public List<String[]> readerCSV(InputStream filePath){ //파라미터 : 읽어들일 파일경로+파일명
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    void setDatas(Question data) {
+        recyclerAdapter.setExamples(data.getExamples());
+        recyclerAdapter.setType(data.getType());
+        correctAnswer = "";
 
-        List<String[]> content = new ArrayList<String[]>();
+        switch (data.getType()) {
+            case 0: //단답형
+                correctAnswer = data.getExample(data.getAnswer());
+                break;
+            case 1: //순서
+                List<String> datas = new ArrayList<>();
+                String got = String.valueOf(data.getAnswer());
+                for (int i = 0; i < got.length(); i++) {
+                    //Log.e(":::"+Integer.parseInt(""+got.charAt(i)),"");
+                    int pos = Integer.parseInt("0"+got.charAt(i));
+                    datas.add(data.getExample(pos));
+                }
+                correctAnswer = String.join(" / ",datas);
+                Toast.makeText(this, ""+correctAnswer, Toast.LENGTH_SHORT).show();
 
-        CSVReader reader = null;
-
-        try {
-
-            reader = new CSVReader(new InputStreamReader(filePath, "euc-kr"));
-
-            content = reader.readAll(); //전체 데이터를 가져옴.
-
-        } catch (FileNotFoundException e) {
-
-            e.printStackTrace();
-
-        } catch (IOException e) {
-
-            e.printStackTrace();
-
-        } finally {
-
-            try {  if(reader != null) reader.close(); } catch (IOException e) {}
-
+                break;
         }
 
-        return content;
+        recyclerAdapter.notifyDataSetChanged();
 
+        titleView = findViewById(R.id.title);
+        titleView.setText(data.getTitle());
     }
+
 
     @Override
     public void onBackPressed() {
@@ -155,6 +159,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            shuffle();
+            //Toast.makeText(this, ""+correctAnswer, Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -171,13 +177,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    @Override
-    public boolean onItemMove(int from, int to) {
-        Question temp = questions.get(from);
-        questions.set(from,questions.get(to));
-        questions.set(to,temp);
 
-        listAdapter.notifyDataSetChanged();
-        return false;
+    @Override
+    public void onStartDrag(RecyclerAdapter.ExampleViewHolder holder) {
+        itemTouchHelper.startDrag(holder);
+    }
+
+    @Override
+    public void answer(String text) {
+        //답하기
+        if (text == correctAnswer) {
+            Toast.makeText(this, "정답!", Toast.LENGTH_SHORT).show();
+            shuffle();
+
+        } else {
+            Toast.makeText(this, correctAnswer, Toast.LENGTH_SHORT).show();
+            Log.e("Your answer:",""+text);
+            Log.e("Real answer:",""+correctAnswer);
+            Log.e("Boolean","" + (text == correctAnswer));
+        }
     }
 }

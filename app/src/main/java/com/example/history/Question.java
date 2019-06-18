@@ -4,12 +4,64 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Question {
-    public int era;
-    public String title;
-    public int type;
-    public int answer;
-    public List<String> example;
-    public String commentary;
+    private int era;
+    private String title;
+    private int type;
+    private int answer;
+    private List<String> example;
+    private String commentary;
+
+    public int getEra() {
+        return era;
+    }
+
+    public void setEra(int era) {
+        this.era = era;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        //0이면 단답형 //1이면 순서
+        this.type = type;
+    }
+
+    public int getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(int answer) {
+        this.answer = answer;
+    }
+
+    public String getExample(int index) {
+        return example.get(index);
+    }
+    public List<String> getExamples() {
+        return example;
+    }
+
+    public void setExample(List<String> example) {
+        this.example = example;
+    }
+
+    public String getCommentary() {
+        return commentary;
+    }
+
+    public void setCommentary(String commentary) {
+        this.commentary = commentary;
+    }
 
     public Question(int era, String title, int type, int answer, String commentary) {
         this.era = era;
@@ -32,5 +84,5 @@ public class Question {
         return "era : " + era + " title: " + title + " answer" + answer;
     }
 
-    ;
+
 }
