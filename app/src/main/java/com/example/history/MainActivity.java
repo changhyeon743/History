@@ -80,9 +80,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         setRecyclerView();
-        Random random = new Random();
-        Question question = questions.get(random.nextInt(questions.size()));
-        setDatas(question);
+        shuffle();
 
         pref = getSharedPreferences("history", MODE_PRIVATE);
     }
@@ -105,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @RequiresApi(api = Build.VERSION_CODES.O)
     void shuffle() {
         Random random = new Random();
+
         setDatas(questions.get(random.nextInt(questions.size())));
     }
 
@@ -166,7 +165,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            shuffle();
+            Intent intent = new Intent(this,SettingActivity.class);
+            startActivity(intent);
+            //shuffle();
             //Toast.makeText(this, ""+correctAnswer, Toast.LENGTH_SHORT).show();
             return true;
         }
