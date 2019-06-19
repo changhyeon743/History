@@ -19,6 +19,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Exampl
     private List<String> examples;
 
 
+
+    private String commentary;
+
     private int type;
 
     public RecyclerAdapter(Listener listener) {
@@ -27,7 +30,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Exampl
 
     public interface Listener {
         void onStartDrag(ExampleViewHolder holder);
-        void answer(String text);
+        void answer(String text, String commentary);
     }
 
     private final Listener listener;
@@ -66,7 +69,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Exampl
                         listener.onStartDrag(holder);
                     }
                 } else {
-                    listener.answer(holder.textView.getText().toString());
+                    listener.answer(holder.textView.getText().toString(),getCommentary());
                 }
                 return false;
             }
@@ -110,6 +113,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Exampl
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public String getCommentary() {
+        return commentary;
+    }
+
+    public void setCommentary(String commentary) {
+        this.commentary = commentary;
     }
 
     class ExampleViewHolder extends RecyclerView.ViewHolder {

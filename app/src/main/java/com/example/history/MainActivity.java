@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,10 +39,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<Question> questions;
     TextView titleView;
     Button confirmBtn;
+    Button cancelBtn;
     String correctAnswer;
 
     SharedPreferences pref;
 
+    NavigationView navigationView;
+    View nav_header_view;
+
+    TextView nav_header_text;
 
     @TargetApi(Build.VERSION_CODES.O)
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -53,19 +59,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
+        nav_header_view = navigationView.getHeaderView(0);
+        nav_header_text = (TextView) nav_header_view.findViewById(R.id.textView);
 
         confirmBtn = findViewById(R.id.confirmBtn);
+        cancelBtn = findViewById(R.id.cancelBtn);
+
         //순서배열
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                answer(recyclerAdapter.getAnswerText());
+                answer(recyclerAdapter.getAnswerText(),recyclerAdapter.getCommentary());
+            }
+        });
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                shuffle();
             }
         });
 
@@ -83,6 +99,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         shuffle();
 
         pref = getSharedPreferences("history", MODE_PRIVATE);
+        setNavigationText(String.valueOf(100* (float)pref.getInt("correct",0) / (float)pref.getInt("wrong",0)));
+
     }
 
     void setRecyclerView() {
@@ -104,13 +122,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     void shuffle() {
         Random random = new Random();
 
-        setDatas(questions.get(random.nextInt(questions.size())));
+        ArrayList<Integer> arrayList = new ArrayList<>();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        for(int i=0;i<10;i++) {
+            if (prefs.getBoolean(String.valueOf(i), false) == true ) {
+                arrayList.add(i);
+
+            }
+        }
+        int index = random.nextInt(questions.size());
+        if (arrayList.contains(questions.get(index).getEra())) {
+            setDatas(questions.get(index));
+        } else {
+            shuffle();
+        }
+
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     void setDatas(Question data) {
         recyclerAdapter.setExamples(data.getExamples());
         recyclerAdapter.setType(data.getType());
+        recyclerAdapter.setCommentary(data.getCommentary());
         correctAnswer = "";
 
         switch (data.getType()) {
@@ -181,6 +216,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
+
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -193,13 +229,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void answer(String text) {
+    public void answer(String text, String commentary) {
         //답하기
         if (text.equals(correctAnswer)) {
             Toast.makeText(this, "정답!", Toast.LENGTH_SHORT).show();
             correct();
             ///Intent
             Intent intent = new Intent(this,ExplainActivity.class);
+            intent.putExtra("explain",commentary);
             startActivity(intent);
             shuffle();
         } else {
@@ -213,13 +250,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     void wrong() {
         SharedPreferences.Editor editor = pref.edit();
-        editor.putInt("wrong",pref.getInt("wrong",0) + 1 ); //키값, 저장값
+        int current = pref.getInt("wrong",0);
+        editor.putInt("wrong", current + 1 ); //키값, 저장값
         editor.commit();
+
+        setNavigationText(String.valueOf(100* (float)current / (float)pref.getInt("wrong",0)));
     }
 
     void correct() {
         SharedPreferences.Editor editor = pref.edit();
-        editor.putInt("correct",pref.getInt("correct",0) + 1 ); //키값, 저장값
+        int current = pref.getInt("correct",0);
+        editor.putInt("correct", current+ 1 ); //키값, 저장값
         editor.commit();
+
+        setNavigationText(String.valueOf(100* (float)current / (float)pref.getInt("wrong",0)));
+
+
+    }
+
+    void setNavigationText(String str) {
+
+        nav_header_text.setText("정답률: "+str+"%");
     }
 }

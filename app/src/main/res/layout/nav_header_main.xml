@@ -28,6 +28,6 @@
         android:textColor="#000"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="맞춘 수" />
+        android:text="정답률" />
 
 </LinearLayout>
