@@ -2,6 +2,7 @@ package com.example.history;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -29,17 +30,18 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, RecyclerAdapter.Listener {
 
-
     RecyclerView recyclerView;
     RecyclerAdapter recyclerAdapter;
     ItemTouchHelper itemTouchHelper;
-
 
 
     List<Question> questions;
     TextView titleView;
     Button confirmBtn;
     String correctAnswer;
+
+    SharedPreferences pref;
+
 
     @TargetApi(Build.VERSION_CODES.O)
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -81,6 +83,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Random random = new Random();
         Question question = questions.get(random.nextInt(questions.size()));
         setDatas(question);
+
+        pref = getSharedPreferences("history", MODE_PRIVATE);
     }
 
     void setRecyclerView() {
@@ -98,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recyclerView.setAdapter(recyclerAdapter);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     void shuffle() {
         Random random = new Random();
         setDatas(questions.get(random.nextInt(questions.size())));
@@ -151,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -184,20 +190,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         itemTouchHelper.startDrag(holder);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void answer(String text) {
         //답하기
         if (text.equals(correctAnswer)) {
             Toast.makeText(this, "정답!", Toast.LENGTH_SHORT).show();
+            correct();
             ///Intent
             Intent intent = new Intent(this,ExplainActivity.class);
             startActivity(intent);
             shuffle();
         } else {
             Toast.makeText(this, "오답!", Toast.LENGTH_SHORT).show();
+            wrong();
             Log.e("Your answer:",""+text);
             Log.e("Real answer:",""+correctAnswer);
             Log.e("Boolean","" + (text.equals(correctAnswer)));
         }
+    }
+
+    void wrong() {
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putInt("wrong",pref.getInt("wrong",0) + 1 ); //키값, 저장값
+        editor.commit();
+    }
+
+    void correct() {
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putInt("correct",pref.getInt("correct",0) + 1 ); //키값, 저장값
+        editor.commit();
     }
 }

@@ -19,4 +19,6 @@
         android:id="@+id/textView"
         android:background="@drawable/dg_list_item"/>
 
+
+
 </LinearLayout>
